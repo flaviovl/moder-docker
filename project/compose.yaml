@@ -1,0 +1,62 @@
+# Ferramentas de depuração ficam num arquivo à parte e só sobem com --profile debug.
+include:
+  - compose.debug.yaml
+
+services:
+  db:
+    image: postgres:18.7
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes:
+      # A partir do Postgres 18, o volume da imagem é /var/lib/postgresql (não mais .../data).
+      - pgdata:/var/lib/postgresql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      # -h 127.0.0.1: durante a inicialização o Postgres só atende pelo socket local.
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "127.0.0.1"]
+      interval: 10s
+      start_period: 30s
+      start_interval: 1s
+
+  api:
+    build:
+      context: ./api
+      secrets: [pypi]
+    environment:
+      DATABASE_URL: postgresql://postgres@db:5432/postgres
+      DB_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    build: ./worker
+    environment:
+      DATABASE_URL: postgres://postgres@db:5432/postgres
+      DB_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    environment:
+      API_URL: http://api:8000
+    # Portas publicadas pelo Docker passam por fora do firewall do host: só 127.0.0.1.
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  pypi:
+    environment: PYPI_TOKEN
+
+volumes:
+  pgdata:
