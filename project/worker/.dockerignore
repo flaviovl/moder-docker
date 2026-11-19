@@ -1,0 +1,6 @@
+# Fora do contexto: segredos, testes e arquivos do Docker.
+.env
+.env.*
+*_test.go
+Dockerfile*
+*.dockerignore

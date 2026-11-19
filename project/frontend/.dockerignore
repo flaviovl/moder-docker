@@ -1,0 +1,8 @@
+# Fora do contexto: segredos, dependências e saídas locais, e arquivos do Docker.
+.env
+.env.*
+node_modules
+.next
+out
+Dockerfile*
+*.dockerignore

@@ -1,0 +1,9 @@
+# Fora do contexto: segredos, ambientes locais, testes e arquivos do Docker.
+.env
+.env.*
+.venv
+**/__pycache__
+.pytest_cache
+tests
+Dockerfile*
+*.dockerignore
