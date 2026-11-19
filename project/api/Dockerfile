@@ -3,13 +3,17 @@ FROM python:3.15.2 AS build
 COPY --from=ghcr.io/astral-sh/uv:0.13.9 /uv /bin/
 WORKDIR /app
 ARG PYPI_TOKEN
-# Instalar e limpar no mesmo RUN: apagar num RUN seguinte não tira nada da camada anterior.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-# Só os arquivos de dependências: mudar o código não invalida esta camada.
-COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-install-project --no-dev
+# Sem o docker-clean, o apt guarda os pacotes baixados e o cache mount passa a ter efeito.
+RUN rm -f /etc/apt/apt.conf.d/docker-clean
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=api-apt-cache \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=api-apt-lib \
+    apt-get update && apt-get install -y --no-install-recommends build-essential libpq-dev
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=0
+# Os pacotes baixados ficam no cache mount (fora da imagem); o lockfile entra por bind mount.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project --no-dev
 
 # O runtime recebe só a venv pronta; compilador e cabeçalhos ficam no estágio de build.
 FROM python:3.15.2 AS runtime

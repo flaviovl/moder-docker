@@ -1,11 +1,14 @@
 # syntax=docker/dockerfile:1
 FROM node:26.13.1 AS deps
+# Com PNPM_HOME=/pnpm, o store do pnpm fica em /pnpm/store (conferido com pnpm store path).
 ENV PNPM_HOME=/pnpm
 RUN npm install -g pnpm@12.21.0
 WORKDIR /app
-# Só os arquivos de dependências: mudar o código não invalida esta camada.
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# O fetch só precisa do lockfile; os pacotes ficam no cache mount, fora da imagem.
+COPY pnpm-lock.yaml ./
+RUN --mount=type=cache,target=/pnpm/store,id=pnpm-store pnpm fetch
+COPY package.json ./
+RUN --mount=type=cache,target=/pnpm/store,id=pnpm-store pnpm install --frozen-lockfile --offline
 
 FROM deps AS build
 COPY . .
