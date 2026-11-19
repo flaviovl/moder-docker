@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.15.2 AS build
+FROM python:3.15.2-slim AS build
 COPY --from=ghcr.io/astral-sh/uv:0.13.9 /uv /bin/
 WORKDIR /app
 # Sem o docker-clean, o apt guarda os pacotes baixados e o cache mount passa a ter efeito.
@@ -17,7 +17,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project --no-dev
 
 # O runtime recebe só a venv pronta; compilador e cabeçalhos ficam no estágio de build.
-FROM python:3.15.2 AS runtime
+FROM python:3.15.2-slim AS runtime
+# A slim não traz a libpq: o runtime instala só a biblioteca, sem compilador nem cabeçalhos.
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /app/.venv /app/.venv
 COPY . .

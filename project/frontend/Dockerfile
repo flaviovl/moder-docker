@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:26.13.1 AS deps
+FROM node:26.13.1-slim AS deps
 # Com PNPM_HOME=/pnpm, o store do pnpm fica em /pnpm/store (conferido com pnpm store path).
 ENV PNPM_HOME=/pnpm
 RUN npm install -g pnpm@12.21.0
@@ -12,19 +12,15 @@ RUN --mount=type=cache,target=/pnpm/store,id=pnpm-store pnpm install --frozen-lo
 
 FROM deps AS build
 COPY . .
+# standalone: o Next copia para .next/standalone só o servidor e as dependências que ele usa.
+ENV NEXT_TELEMETRY_DISABLED=1 NEXT_OUTPUT=standalone
 RUN pnpm build
 
-# O runtime leva só as dependências de produção: o build precisa das de desenvolvimento, o runtime não.
-FROM deps AS prod-deps
-RUN pnpm prune --prod
-
-FROM node:26.13.1 AS runtime
-ENV PNPM_HOME=/pnpm
-RUN npm install -g pnpm@12.21.0
+FROM node:26.13.1-slim AS runtime
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 WORKDIR /app
-COPY package.json next.config.ts ./
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=build /app/.next ./.next
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 EXPOSE 3000
-CMD pnpm start
+CMD node server.js
