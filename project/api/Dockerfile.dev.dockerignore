@@ -1,6 +1,0 @@
-# Contexto do Dockerfile.dev: o código inteiro, menos segredos e ambientes locais.
-.env
-.env.*
-.venv
-**/__pycache__
-.pytest_cache

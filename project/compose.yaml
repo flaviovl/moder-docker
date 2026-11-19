@@ -22,6 +22,7 @@ services:
   api:
     build:
       context: ./api
+      target: runtime
       secrets: [pypi]
     environment:
       DATABASE_URL: postgresql://postgres@db:5432/postgres
@@ -32,7 +33,9 @@ services:
         condition: service_healthy
 
   worker:
-    build: ./worker
+    build:
+      context: ./worker
+      target: runtime
     environment:
       DATABASE_URL: postgres://postgres@db:5432/postgres
       DB_PASSWORD_FILE: /run/secrets/db_password
@@ -42,7 +45,9 @@ services:
         condition: service_healthy
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      target: runtime
     environment:
       API_URL: http://api:8000
     # Portas publicadas pelo Docker passam por fora do firewall do host: só 127.0.0.1.

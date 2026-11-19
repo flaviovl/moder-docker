@@ -1,9 +1,8 @@
-# Fora do contexto: segredos, ambientes locais, testes e arquivos do Docker.
+# Um contexto para os três alvos: fora só segredos, ambientes locais e arquivos do Docker.
 .env
 .env.*
 .venv
 **/__pycache__
 .pytest_cache
-tests
 Dockerfile*
 *.dockerignore

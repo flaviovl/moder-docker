@@ -18,7 +18,7 @@ services:
   api:
     build:
       context: ./api
-      dockerfile: Dockerfile.dev
+      target: dev
     environment:
       DATABASE_URL: postgresql://postgres:dev@db:5432/postgres
     ports:
@@ -47,7 +47,7 @@ services:
   worker:
     build:
       context: ./worker
-      dockerfile: Dockerfile.dev
+      target: dev
     environment:
       DATABASE_URL: postgres://postgres:dev@db:5432/postgres
     depends_on:
@@ -69,7 +69,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      target: dev
     environment:
       API_URL: http://api:8000
     ports:

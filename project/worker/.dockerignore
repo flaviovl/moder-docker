@@ -1,6 +1,5 @@
-# Fora do contexto: segredos, testes e arquivos do Docker.
+# Um contexto para os três alvos (o test precisa dos *_test.go): fora só segredos e arquivos do Docker.
 .env
 .env.*
-*_test.go
 Dockerfile*
 *.dockerignore

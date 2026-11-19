@@ -1,10 +1,25 @@
 # syntax=docker/dockerfile:1
-# Base de build do worker nos três Dockerfiles (Dockerfile, Dockerfile.dev e Dockerfile.test): golang:1.27.4.
+# Um Dockerfile, três alvos: dev, test e runtime (produção, o último e o padrão). Build: golang:1.27.4.
 
 # O build roda na arquitetura da máquina e compila para a de destino, sem emulação.
-FROM --platform=$BUILDPLATFORM golang:1.27.4 AS build
+FROM --platform=$BUILDPLATFORM golang:1.27.4 AS base
+WORKDIR /src
+
+# Sem cache mount aqui: os módulos precisam ficar na imagem, porque go run e go test rodam no contêiner.
+FROM base AS deps
+COPY go.mod go.sum ./
+RUN go mod download
+
+FROM deps AS dev
+COPY . .
+CMD ["go", "run", "."]
+
+FROM deps AS test
+COPY . .
+CMD ["go", "test", "./..."]
+
+FROM base AS build
 ARG TARGETOS TARGETARCH
-WORKDIR /app
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=bind,source=go.mod,target=go.mod \
     --mount=type=bind,source=go.sum,target=go.sum \
