@@ -1,0 +1,18 @@
+# Arquivos Docker de cada passo durante a construção das tags; some depois que as tags existirem.
+.rodadas/
+
+# Segredos e configuração local
+.env
+.env.*
+!.env.example
+project/secrets/*
+!project/secrets/.gitkeep
+
+# Dependências e saídas de build
+node_modules/
+.next/
+out/
+.venv/
+__pycache__/
+.pytest_cache/
+*.tsbuildinfo
