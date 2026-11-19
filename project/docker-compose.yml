@@ -14,8 +14,8 @@ services:
   api:
     build:
       context: ./api
-      args:
-        PYPI_TOKEN: ${PYPI_TOKEN}
+      secrets:
+        - pypi
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
     ports:
@@ -41,3 +41,7 @@ services:
 
 volumes:
   pgdata:
+
+secrets:
+  pypi:
+    environment: PYPI_TOKEN
