@@ -21,9 +21,14 @@ FROM python:3.15.2-slim AS runtime
 # A slim não traz a libpq: o runtime instala só a biblioteca, sem compilador nem cabeçalhos.
 RUN apt-get update && apt-get install -y --no-install-recommends libpq5 \
     && rm -rf /var/lib/apt/lists/*
+RUN useradd --system --uid 10001 app
 WORKDIR /app
 COPY --from=build /app/.venv /app/.venv
 COPY . .
 ENV PATH="/app/.venv/bin:$PATH"
+USER app
 EXPOSE 8000
-CMD uvicorn app.main:app --host 0.0.0.0 --port 8000
+HEALTHCHECK --interval=30s --start-period=20s --start-interval=1s --timeout=3s \
+    CMD ["python", "-m", "app.health"]
+# Exec form: o uvicorn é o PID 1 e recebe o SIGTERM do docker stop (no shell form, o sh não repassa).
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
