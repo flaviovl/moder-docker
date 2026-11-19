@@ -1,0 +1,13 @@
+# syntax=docker/dockerfile:1
+# Base do frontend nos dois Dockerfiles (Dockerfile e Dockerfile.dev): node:26.13.1-slim.
+
+FROM node:26.13.1-slim
+ENV PNPM_HOME=/pnpm NEXT_TELEMETRY_DISABLED=1
+RUN npm install -g pnpm@12.21.0
+WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+RUN --mount=type=cache,target=/pnpm/store,id=pnpm-store pnpm install --frozen-lockfile
+# O Watch só sincroniza o que muda depois da subida: o código já precisa estar na imagem.
+COPY . .
+EXPOSE 3000
+CMD ["pnpm", "dev", "--hostname", "0.0.0.0"]

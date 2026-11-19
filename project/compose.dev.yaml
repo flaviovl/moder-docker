@@ -1,0 +1,94 @@
+name: project-dev
+
+services:
+  db:
+    image: postgres:18.7
+    environment:
+      # Senha só de desenvolvimento, sem valor fora desta máquina.
+      POSTGRES_PASSWORD: dev
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "127.0.0.1"]
+      interval: 10s
+      start_period: 30s
+      start_interval: 1s
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.dev
+    environment:
+      DATABASE_URL: postgresql://postgres:dev@db:5432/postgres
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    develop:
+      watch:
+        # Código: o uvicorn --reload recarrega sozinho.
+        - action: sync
+          path: ./api/app
+          target: /app/app
+          initial_sync: true
+          ignore:
+            - __pycache__/
+        # Configuração lida só na subida: sincroniza e reinicia o processo.
+        - action: sync+restart
+          path: ./api/config
+          target: /app/config
+          initial_sync: true
+        # Dependência nova: refaz a imagem e recria o contêiner.
+        - action: rebuild
+          path: ./api/uv.lock
+
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile.dev
+    environment:
+      DATABASE_URL: postgres://postgres:dev@db:5432/postgres
+    depends_on:
+      db:
+        condition: service_healthy
+    develop:
+      watch:
+        # Go é compilado: sincroniza e reinicia, e o go run recompila com o cache que ficou no contêiner.
+        - action: sync+restart
+          path: ./worker
+          target: /src
+          initial_sync: true
+          ignore:
+            - go.mod
+            - go.sum
+        - action: rebuild
+          path: ./worker/go.sum
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      API_URL: http://api:8000
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - api
+    develop:
+      watch:
+        # Código: o Next em modo dev aplica a mudança no navegador sem recarregar a página.
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+          initial_sync: true
+        # Configuração do Next: só vale depois de reiniciar o servidor.
+        - action: sync+restart
+          path: ./frontend/next.config.ts
+          target: /app/next.config.ts
+        - action: rebuild
+          path: ./frontend/pnpm-lock.yaml
+
+volumes:
+  pgdata:

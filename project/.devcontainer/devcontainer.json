@@ -1,0 +1,12 @@
+{
+  "name": "painel-de-sensores",
+  "image": "mcr.microsoft.com/devcontainers/base:2-trixie",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/node:1": { "version": "26.13.1" },
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.15" },
+    "ghcr.io/devcontainers/features/go:1": { "version": "1.27.4" }
+  },
+  "postCreateCommand": "npm install -g pnpm@12.21.0 && pipx install uv==0.13.9",
+  "forwardPorts": [3000, 8000]
+}
