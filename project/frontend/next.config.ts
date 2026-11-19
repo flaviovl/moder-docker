@@ -5,10 +5,13 @@ const output = ["standalone", "export"].includes(process.env.NEXT_OUTPUT ?? "")
   ? (process.env.NEXT_OUTPUT as NextConfig["output"])
   : undefined;
 
+// O export estático não aceita pré-renderização parcial (PPR): Cache Components só fora dele.
+const isExport = output === "export";
+
 const nextConfig: NextConfig = {
   output,
-  cacheComponents: true,
-  partialPrefetching: true,
+  cacheComponents: !isExport,
+  partialPrefetching: !isExport,
   turbopack: {
     rules: {
       "*.css": {

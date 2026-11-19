@@ -1,0 +1,13 @@
+# Postgres sem volume nomeado: os dados vão para o volume anônimo que a imagem declara.
+# Troque a versão com PG_TAG=18.6 docker compose up -d e confira o que acontece com os dados.
+services:
+  db:
+    image: postgres:${PG_TAG:-18.4}
+    environment:
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      # -h 127.0.0.1: durante a inicialização o Postgres só atende pelo socket local.
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "127.0.0.1"]
+      interval: 10s
+      start_period: 30s
+      start_interval: 1s
