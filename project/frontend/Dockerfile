@@ -1,4 +1,6 @@
 # syntax=docker/dockerfile:1
+# Base do frontend nos três Dockerfiles (Dockerfile, Dockerfile.dev e Dockerfile.test): node:26.13.1-slim.
+
 FROM node:26.13.1-slim AS deps
 # Com PNPM_HOME=/pnpm, o store do pnpm fica em /pnpm/store (conferido com pnpm store path).
 ENV PNPM_HOME=/pnpm

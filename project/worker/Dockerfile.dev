@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Base de build do worker nos dois Dockerfiles (Dockerfile e Dockerfile.dev): golang:1.27.4.
+# Base de build do worker nos três Dockerfiles (Dockerfile, Dockerfile.dev e Dockerfile.test): golang:1.27.4.
 
 FROM golang:1.27.4
 WORKDIR /src

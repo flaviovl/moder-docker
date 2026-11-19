@@ -1,0 +1,26 @@
+name: project-test
+
+services:
+  db:
+    image: postgres:18.7
+    environment:
+      # Banco descartável, só alcançável pela rede deste compose.
+      POSTGRES_HOST_AUTH_METHOD: trust
+    tmpfs:
+      - /var/lib/postgresql
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "127.0.0.1"]
+      interval: 2s
+      retries: 15
+
+  tests:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.test
+    environment:
+      DATABASE_URL: postgresql://postgres@db:5432/postgres
+    depends_on:
+      db:
+        condition: service_healthy

@@ -1,4 +1,6 @@
 # syntax=docker/dockerfile:1
+# Base da API nos três Dockerfiles (Dockerfile, Dockerfile.dev e Dockerfile.test): python:3.15.2-slim.
+
 FROM python:3.15.2-slim AS build
 COPY --from=ghcr.io/astral-sh/uv:0.13.9 /uv /bin/
 WORKDIR /app

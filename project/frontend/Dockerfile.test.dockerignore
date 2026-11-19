@@ -1,0 +1,6 @@
+# Contexto do Dockerfile.test: o código inteiro, menos segredos e saídas locais.
+.env
+.env.*
+node_modules
+.next
+out

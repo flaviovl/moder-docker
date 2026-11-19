@@ -1,4 +1,6 @@
 # syntax=docker/dockerfile:1
+# Base de build do worker nos três Dockerfiles (Dockerfile, Dockerfile.dev e Dockerfile.test): golang:1.27.4.
+
 # O build roda na arquitetura da máquina e compila para a de destino, sem emulação.
 FROM --platform=$BUILDPLATFORM golang:1.27.4 AS build
 ARG TARGETOS TARGETARCH

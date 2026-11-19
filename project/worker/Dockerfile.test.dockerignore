@@ -1,0 +1,5 @@
+# Contexto do Dockerfile.test: o código e os testes, menos segredos e arquivos do Docker.
+.env
+.env.*
+Dockerfile*
+*.dockerignore
